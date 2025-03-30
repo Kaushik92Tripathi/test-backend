@@ -4,20 +4,25 @@ const pool = require('../db');
 function formatTime(time) {
   if (!time) return null;
   
-  // Ensure time is a proper Date object
-  const date = time instanceof Date ? time : new Date(time);
-  
-  if (isNaN(date.getTime())) {
-    console.error('Invalid date:', time);
-    return null;
+  // Handle PostgreSQL TIME type which comes as a string in format "HH:MM:SS"
+  if (typeof time === 'string') {
+    const [hours, minutes] = time.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHour = hours % 12 || 12;
+    return `${displayHour}:${minutes.toString().padStart(2, '0')} ${period}`;
   }
   
-  const hours = date.getHours();
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  const period = hours >= 12 ? 'PM' : 'AM';
-  const displayHour = hours % 12 || 12;
-  
-  return `${displayHour}:${minutes} ${period}`;
+  // Handle Date objects
+  if (time instanceof Date) {
+    const hours = time.getHours();
+    const minutes = time.getMinutes();
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHour = hours % 12 || 12;
+    return `${displayHour}:${minutes.toString().padStart(2, '0')} ${period}`;
+  }
+
+  console.error('Invalid time format:', time);
+  return null;
 }
 
 const userController = {
@@ -32,7 +37,7 @@ const userController = {
           u.name,
           u.email,
           u.role,
-          up.phone_number,
+          up.phone,
           up.address,
           up.city,
           up.state,
@@ -61,7 +66,7 @@ const userController = {
           email: user.email,
           role: user.role,
           profile: {
-            phoneNumber: user.phone_number,
+            phoneNumber: user.phone,
             address: user.address,
             city: user.city,
             state: user.state,
@@ -181,36 +186,31 @@ const userController = {
           );
         }
 
-        // Update or insert user profile
+        // Update user profile
         const profileResult = await client.query(
-          `INSERT INTO user_profiles (
-            user_id, phone_number, address, city, state, country, 
-            date_of_birth, gender, blood_group, medical_history
-          ) 
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-          ON CONFLICT (user_id) 
-          DO UPDATE SET
-            phone_number = EXCLUDED.phone_number,
-            address = EXCLUDED.address,
-            city = EXCLUDED.city,
-            state = EXCLUDED.state,
-            country = EXCLUDED.country,
-            date_of_birth = EXCLUDED.date_of_birth,
-            gender = EXCLUDED.gender,
-            blood_group = EXCLUDED.blood_group,
-            medical_history = EXCLUDED.medical_history
-          RETURNING *`,
+          `UPDATE user_profiles 
+           SET phone = $2,
+               address = $3,
+               city = $4,
+               state = $5,
+               country = $6,
+               date_of_birth = $7,
+               gender = $8,
+               blood_group = $9,
+               medical_history = $10
+           WHERE user_id = $1
+           RETURNING *`,
           [
             userId,
-            phoneNumber,
-            address,
-            city,
-            state,
-            country,
-            dateOfBirth,
-            gender,
-            bloodGroup,
-            medicalHistory
+            phoneNumber || null,
+            address || null,
+            city || null,
+            state || null,
+            country || null,
+            dateOfBirth || null,
+            gender || null,
+            bloodGroup || null,
+            medicalHistory || null
           ]
         );
 
