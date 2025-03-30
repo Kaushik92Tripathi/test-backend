@@ -2,6 +2,15 @@ const express = require('express');
 const cors = require('cors');
 const passport = require('./config/passport');
 const dotenv = require('dotenv');
+const path = require('path');
+
+// Load environment variables based on NODE_ENV
+const envFile = process.env.NODE_ENV === 'production' ? '.env' : '.env.development';
+dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+
+console.log('Environment:', process.env.NODE_ENV);
+console.log('Frontend URL:', process.env.FRONTEND_URL);
+console.log('Backend URL:', process.env.BACKEND_URL);
 
 const appointmentRoutes = require('./routes/appointmentRoutes');
 const doctorRoutes = require('./routes/doctorRoutes');
@@ -11,8 +20,6 @@ const userRoutes = require('./routes/userRoutes');
 const adminDoctorRoutes = require('./routes/adminDoctorRoutes');
 const adminDashboardRoutes = require('./routes/adminDashboardRoutes');
 const authRoutes = require('./routes/authRoutes');
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;

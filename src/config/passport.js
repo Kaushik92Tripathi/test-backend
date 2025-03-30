@@ -2,7 +2,13 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const bcrypt = require('bcrypt');
+const path = require('path');
 const pool = require('../db');
+
+// Load environment variables based on NODE_ENV
+require('dotenv').config({
+  path: path.resolve(process.cwd(), process.env.NODE_ENV === 'production' ? '.env' : '.env.development')
+});
 
 // Local Strategy
 passport.use(new LocalStrategy({
@@ -37,9 +43,13 @@ passport.use(new LocalStrategy({
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: `${process.env.BACKEND_URL}/api/auth/google/callback`
+  callbackURL: `${process.env.BACKEND_URL}/api/auth/google/callback`,
+  proxy: true
 }, async (accessToken, refreshToken, profile, done) => {
   try {
+    console.log('Google Auth Environment:', process.env.NODE_ENV);
+    console.log('Callback URL:', `${process.env.BACKEND_URL}/api/auth/google/callback`);
+    
     const user = {
       name: profile.displayName,
       email: profile.emails[0].value,

@@ -39,6 +39,7 @@ const appointmentController = {
         confirmed: appointments.filter(app => app.status === 'confirmed').length,
         pending: appointments.filter(app => app.status === 'pending').length,
         cancelled: appointments.filter(app => app.status === 'cancelled').length,
+        completed: appointments.filter(app => app.status === 'completed').length,
       };
 
       res.json({ appointments, stats });
@@ -241,7 +242,7 @@ const appointmentController = {
     
     try {
       // Validate status
-      if (!['confirmed', 'cancelled', 'pending'].includes(status)) {
+      if (!['confirmed', 'cancelled', 'pending', 'completed'].includes(status)) {
         return res.status(400).json({ message: 'Invalid status value' });
       }
 
@@ -252,6 +253,27 @@ const appointmentController = {
       try {
         await client.query('BEGIN');
         
+        // Get current appointment status
+        const currentStatusQuery = `
+          SELECT status FROM appointments WHERE id = $1
+        `;
+        const currentStatusResult = await client.query(currentStatusQuery, [id]);
+        
+        if (currentStatusResult.rows.length === 0) {
+          await client.query('ROLLBACK');
+          return res.status(404).json({ message: 'Appointment not found' });
+        }
+
+        const currentStatus = currentStatusResult.rows[0].status;
+
+        // Validate status transition
+        if (status === 'completed' && currentStatus !== 'confirmed') {
+          await client.query('ROLLBACK');
+          return res.status(400).json({ 
+            message: 'Only confirmed appointments can be marked as completed' 
+          });
+        }
+
         // Update appointment status
         const result = await client.query(
           `UPDATE appointments 
