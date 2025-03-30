@@ -1,0 +1,59 @@
+const express = require('express');
+const cors = require('cors');
+const passport = require('./config/passport');
+const dotenv = require('dotenv');
+
+const appointmentRoutes = require('./routes/appointmentRoutes');
+const doctorRoutes = require('./routes/doctorRoutes');
+const locationRoutes = require('./routes/locationRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
+const userRoutes = require('./routes/userRoutes');
+const adminDoctorRoutes = require('./routes/adminDoctorRoutes');
+const adminDashboardRoutes = require('./routes/adminDashboardRoutes');
+const authRoutes = require('./routes/authRoutes');
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+}));
+
+// Middleware
+app.use(express.json());
+app.use(passport.initialize());
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/doctors', doctorRoutes);
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/locations', locationRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/admin/doctors', adminDoctorRoutes);
+app.use('/api/admin/dashboard', adminDashboardRoutes);
+
+// Root route
+app.get('/', (req, res) => {
+  res.json({ message: 'MedCare API is running' });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
