@@ -50,13 +50,6 @@ passport.use(new GoogleStrategy({
     console.log('Google Auth Environment:', process.env.NODE_ENV);
     console.log('Callback URL:', `${process.env.BACKEND_URL}/api/auth/google/callback`);
     
-    const user = {
-      name: profile.displayName,
-      email: profile.emails[0].value,
-      profileImage: profile.photos[0].value,
-      googleId: profile.id,
-      token: accessToken,
-    };
     // Check if user exists
     const result = await pool.query(
       'SELECT * FROM users WHERE email = $1',
@@ -69,8 +62,8 @@ passport.use(new GoogleStrategy({
 
     // Create new user if doesn't exist
     const newUser = await pool.query(
-      'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING *',
-      [profile.displayName, profile.emails[0].value, '', 'patient']
+      'INSERT INTO users (name, email, password, role, profile_picture) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [profile.displayName, profile.emails[0].value, '', 'patient', profile.photos[0].value]
     );
 
     // Create user profile
@@ -79,7 +72,7 @@ passport.use(new GoogleStrategy({
       [newUser.rows[0].id]
     );
 
-    return done(null, user);
+    return done(null, newUser.rows[0]);
   } catch (error) {
     return done(error);
   }

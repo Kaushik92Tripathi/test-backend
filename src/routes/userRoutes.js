@@ -1,15 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { auth } = require('../middleware/auth');
+const { isAuthenticated } = require('../middleware/sessionAuth');
 const userController = require('../controllers/userController');
 
 // Get user profile
-router.get('/profile', auth, userController.getUserProfile);
+router.get('/profile', isAuthenticated, userController.getUserProfile);
 
 // Update user profile
-router.put('/profile', auth, userController.updateUserProfile);
+router.put('/profile', isAuthenticated, userController.updateUserProfile);
 
 // Get user appointments
-router.get('/appointments', auth, userController.getUserAppointments);
+router.get('/appointments', isAuthenticated, userController.getUserAppointments);
 
 module.exports = router; 

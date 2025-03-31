@@ -1,44 +1,42 @@
 const express = require('express');
 const cors = require('cors');
 const passport = require('./config/passport');
-const dotenv = require('dotenv');
+const sessionConfig = require('./config/session');
+const session = require('express-session');
 const path = require('path');
-
-// Load environment variables based on NODE_ENV
-const envFile = process.env.NODE_ENV === 'production' ? '.env' : '.env.development';
-dotenv.config({ path: path.resolve(process.cwd(), envFile) });
-
-console.log('Environment:', process.env.NODE_ENV);
-console.log('Frontend URL:', process.env.FRONTEND_URL);
-console.log('Backend URL:', process.env.BACKEND_URL);
-
-const appointmentRoutes = require('./routes/appointmentRoutes');
+const authRoutes = require('./routes/authRoutes');
 const doctorRoutes = require('./routes/doctorRoutes');
+const appointmentRoutes = require('./routes/appointmentRoutes');
 const locationRoutes = require('./routes/locationRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const userRoutes = require('./routes/userRoutes');
-const adminDoctorRoutes = require('./routes/adminDoctorRoutes');
-const adminDashboardRoutes = require('./routes/adminDashboardRoutes');
-const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+
+// Load environment variables based on NODE_ENV
+require('dotenv').config({
+  path: path.resolve(process.cwd(), process.env.NODE_ENV === 'production' ? '.env' : '.env.development')
+});
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: process.env.FRONTEND_URL,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Middleware
-app.use(express.json({ limit: '2mb' }));
-app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Session middleware
+app.use(session(sessionConfig));
+
+// Initialize Passport and restore authentication state from session
 app.use(passport.initialize());
+app.use(passport.session());
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -47,13 +45,8 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/locations', locationRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/user', userRoutes);
-app.use('/api/admin/doctors', adminDoctorRoutes);
-app.use('/api/admin/dashboard', adminDashboardRoutes);
+app.use('/api/admin', adminRoutes);
 
-// Root route
-app.get('/', (req, res) => {
-  res.json({ message: 'MedCare API is running' });
-});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -61,7 +54,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// Start server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-});
+}); 

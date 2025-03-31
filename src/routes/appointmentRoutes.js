@@ -1,24 +1,24 @@
 const express = require('express');
 const router = express.Router();
-const { auth, adminAuth } = require('../middleware/auth');
+const { isAuthenticated, isAdmin } = require('../middleware/sessionAuth');
 const appointmentController = require('../controllers/appointmentController');
 
 // Get all appointments (admin only)
-router.get('/', auth, appointmentController.getAllAppointments);
+router.get('/', isAuthenticated, appointmentController.getAllAppointments);
 
 // Get appointment by ID
-router.get('/:id', auth, appointmentController.getAppointmentById);
+router.get('/:id', isAuthenticated, appointmentController.getAppointmentById);
 
 // Create new appointment
-router.post('/', auth, appointmentController.createAppointment);
+router.post('/', isAuthenticated, appointmentController.createAppointment);
 
-// Update appointment status
-router.patch('/:id/status', adminAuth, appointmentController.updateAppointmentStatus);
+// Update appointment status (admin only)
+router.patch('/:id/status', isAdmin, appointmentController.updateAppointmentStatus);
 
 // Cancel appointment
-router.patch('/:id/cancel', auth, appointmentController.cancelAppointment);
+router.patch('/:id/cancel', isAuthenticated, appointmentController.cancelAppointment);
 
 // Get appointments for a specific doctor and user
-router.get('/doctor/:doctorId/user', auth, appointmentController.getDoctorAppointmentsForUser);
+router.get('/doctor/:doctorId/user', isAuthenticated, appointmentController.getDoctorAppointmentsForUser);
 
 module.exports = router; 

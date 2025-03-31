@@ -1,15 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const reviewController = require('../controllers/reviewController');
-const { auth } = require('../middleware/auth');
+const { isAuthenticated } = require('../middleware/sessionAuth');
 
 // Get reviews for a specific doctor
-router.get('/',auth, reviewController.getDoctorReviews);
+router.get('/', isAuthenticated, reviewController.getDoctorReviews);
 
 // Add a new review
-router.post('/', auth, reviewController.createReview);
-
-// Update appointment status
-router.put('/appointments/:id', auth, reviewController.updateAppointmentStatus);
+router.post('/', isAuthenticated, reviewController.createReview);
 
 module.exports = router;
