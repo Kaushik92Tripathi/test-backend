@@ -16,8 +16,9 @@ const sessionConfig = {
     secure: true,
     httpOnly: true,
     sameSite: 'none',
-    maxAge: 24 * 60 * 60 * 1000,
-    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    path: '/',
+    domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined
   }
 };
 
