@@ -35,7 +35,24 @@ router.post('/register', async (req, res) => {
       [result.rows[0].id]
     );
 
-    res.status(201).json(result.rows[0]);
+    // Generate token for the new user
+    const user = {
+      id: result.rows[0].id,
+      name: result.rows[0].name,
+      email: result.rows[0].email,
+      role: result.rows[0].role
+    };
+
+    const token = jwt.sign(
+      user,
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.status(201).json({
+      token,
+      user
+    });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ error: 'Registration failed' });
@@ -74,7 +91,6 @@ router.get('/google', passport.authenticate('google', {
 }));
 
 router.get('/google/callback', passport.authenticate('google', {
-  failureRedirect: '/login',
   session: false
 }), async (req, res) => {
   try {

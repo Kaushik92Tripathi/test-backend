@@ -193,7 +193,7 @@ const appointmentController = {
         RETURNING *
       `;
       const insertResult = await pool.query(insertQuery, [
-        req.user.id, // Assuming user ID is available from auth middleware
+        req.user.id, // user ID is available from auth middleware
         doctorId,
         formattedDate,
         timeSlotId,
