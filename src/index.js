@@ -24,12 +24,14 @@ const corsOptions = {
   origin: 'https://test-frontend-two-woad.vercel.app',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-  exposedHeaders: ['Set-Cookie', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With', 'Accept'],
+  exposedHeaders: ['Set-Cookie'],
+  preflightContinue: true,
+  optionsSuccessStatus: 204
 };
 
 // Trust the first proxy and enable CORS
-app.enable('trust proxy');
+app.set('trust proxy', 1);
 app.use(cors(corsOptions));
 
 // Enable pre-flight requests for all routes
