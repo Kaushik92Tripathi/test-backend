@@ -20,12 +20,19 @@ require('dotenv').config({
 const app = express();
 
 // CORS configuration
-app.use(cors({
-  origin: process.env.FRONTEND_URL,
+const corsOptions = {
+  origin: 'https://test-frontend-two-woad.vercel.app',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Set-Cookie']
+};
+
+app.use(cors(corsOptions));
+app.set('trust proxy', 1); // trust first proxy
+
+// Enable pre-flight requests for all routes
+app.options('*', cors(corsOptions));
 
 // Middleware
 app.use(express.json());

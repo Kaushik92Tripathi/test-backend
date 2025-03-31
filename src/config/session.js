@@ -11,10 +11,13 @@ const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
+  proxy: true,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: true,
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    sameSite: 'none',
+    maxAge: 24 * 60 * 60 * 1000,
+    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
   }
 };
 
