@@ -27,11 +27,11 @@ passport.use(new LocalStrategy({
       return done(null, false, { message: 'Incorrect email.' });
     }
 
-    // const isValidPassword = await bcrypt.compare(password, user.password);
+    const isValidPassword = await bcrypt.compare(password, user.password);
 
-    // if (!isValidPassword) {
-    //   return done(null, false, { message: 'Incorrect password.' });
-    // }
+    if (!isValidPassword) {
+      return done(null, false, { message: 'Incorrect password.' });
+    }
 
     return done(null, user);
   } catch (error) {

@@ -1,4 +1,5 @@
 const pool = require('../db');
+const { formatTime } = require('../utils/timeUtils');
 
 const adminDashboardController = {
   // Get dashboard data (appointments and doctors)
@@ -153,37 +154,5 @@ const adminDashboardController = {
     }
   }
 };
-
-// Helper function to format time
-function formatTime(time) {
-  if (!time) return null;
-  
-  try {
-    // If time is a string in HH:MM:SS format
-    if (typeof time === 'string' && time.includes(':')) {
-      const [hours, minutes] = time.split(':');
-      const period = hours >= 12 ? 'PM' : 'AM';
-      const displayHour = hours % 12 || 12;
-      return `${displayHour}:${minutes} ${period}`;
-    }
-    
-    // If time is a Date object or timestamp
-    const date = time instanceof Date ? time : new Date(time);
-    if (isNaN(date.getTime())) {
-      console.error('Invalid date:', time);
-      return null;
-    }
-    
-    const hours = date.getHours();
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    const period = hours >= 12 ? 'PM' : 'AM';
-    const displayHour = hours % 12 || 12;
-    
-    return `${displayHour}:${minutes} ${period}`;
-  } catch (error) {
-    console.error('Error formatting time:', error, time);
-    return null;
-  }
-}
 
 module.exports = adminDashboardController; 

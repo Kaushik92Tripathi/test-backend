@@ -1,5 +1,6 @@
 const pool = require('../db');
 const { format, addDays, startOfDay, endOfDay } = require('date-fns');
+const { formatTime } = require('../utils/timeUtils');
 
 const doctorController = {
   // Get top doctors based on rating and review count
@@ -270,8 +271,7 @@ const doctorController = {
       const startDate = startOfDay(date ? new Date(date) : new Date());
       const endDate = startOfDay(addDays(startDate, 14));
 
-      console.log('Fetching availability for doctor:', doctorId);
-      console.log('Date range:', { startDate, endDate });
+  
 
       // Get doctor's availability pattern
       const availabilityQuery = `
@@ -365,51 +365,7 @@ const doctorController = {
   }
 };
 
-// Helper function to format time
-function formatTime(time) {
-  if (!time) return null;
-  
-  // If time is already a string in HH:mm format
-  if (typeof time === 'string' && time.includes(':')) {
-    const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours);
-    const period = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${period}`;
-  }
-  
-  // If time is a Date object
-  const date = time instanceof Date ? time : new Date(time);
-  if (isNaN(date.getTime())) {
-    console.error('Invalid date:', time);
-    return null;
-  }
-  
-  const hours = date.getHours();
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  const period = hours >= 12 ? 'PM' : 'AM';
-  const displayHour = hours % 12 || 12;
-  
-  return `${displayHour}:${minutes} ${period}`;
-}
-
 module.exports = doctorController; 
 
 
 // `
-// SELECT 
-//   d.id,
-//   d.degree,
-//   d.experience_years,
-//   d.avg_rating,
-//   d.review_count,
-//   u.name as doctor_name,
-//   u.profile_picture,
-//   s.name as specialty_name
-// FROM doctors d
-// JOIN users u ON d.user_id = u.id
-// LEFT JOIN specialties s ON d.specialty_id = s.id
-// WHERE d.is_available = true
-// ORDER BY d.avg_rating DESC, d.review_count DESC
-// LIMIT 6
-// `;
