@@ -21,13 +21,13 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: 'https://test-frontend-two-woad.vercel.app',
+  origin: process.env.NODE_ENV === 'development'
+    ? ['http://localhost:3000', 'http://localhost:3001']
+    : ['https://test-frontend-two-woad.vercel.app'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With', 'Accept'],
-  exposedHeaders: ['Set-Cookie'],
-  preflightContinue: true,
-  optionsSuccessStatus: 204
+  exposedHeaders: ['Set-Cookie']
 };
 
 // Trust the first proxy and enable CORS
