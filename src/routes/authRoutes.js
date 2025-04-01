@@ -64,12 +64,20 @@ router.post('/login', passport.authenticate('local'), (req, res) => {
 
 // Google Strategy Routes
 router.get('/google', passport.authenticate('google', {
-  scope: ['profile', 'email']
+  scope: ['profile', 'email', 'https://www.googleapis.com/auth/userinfo.profile']
 }));
 
-router.get('/google/callback', passport.authenticate('google'), (req, res) => {
-  res.redirect(`${process.env.FRONTEND_URL}/auth/callback`);
-});
+router.get('/google/callback', 
+  passport.authenticate('google', { 
+    failureRedirect: `${process.env.FRONTEND_URL}/auth/error`,
+    failureMessage: true
+  }), 
+  (req, res) => {
+    // Successful authentication
+    console.log('Google auth successful, redirecting to frontend callback');
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback`);
+  }
+);
 
 // Logout route
 router.post('/logout', (req, res) => {
@@ -82,17 +90,31 @@ router.post('/logout', (req, res) => {
 });
 
 // Get current user
-router.get('/me', (req, res) => {
+router.get('/me', async (req, res) => {
   if (req.isAuthenticated()) {
-    res.json({
-      user: {
-        id: req.user.id,
-        name: req.user.name,
-        email: req.user.email,
-        role: req.user.role,
-        profile_picture: req.user.profile_picture
-      }
-    });
+    try {
+      const result = await pool.query(
+        `SELECT u.*, up.profile_picture 
+         FROM users u 
+         LEFT JOIN user_profiles up ON u.id = up.user_id 
+         WHERE u.id = $1`,
+        [req.user.id]
+      );
+      
+      const user = result.rows[0];
+      res.json({
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          profile_picture: user.profile_picture
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      res.status(500).json({ error: 'Error fetching user data' });
+    }
   } else {
     res.status(401).json({ error: 'Not authenticated' });
   }

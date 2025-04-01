@@ -60,19 +60,31 @@ passport.use(new GoogleStrategy({
       return done(null, result.rows[0]);
     }
 
-    // Create new user if doesn't exist
-    const newUser = await pool.query(
-      'INSERT INTO users (name, email, password, role, profile_picture) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [profile.displayName, profile.emails[0].value, '', 'patient', profile.photos[0].value]
-    );
+    // Start a transaction
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    // Create user profile
-    await pool.query(
-      'INSERT INTO user_profiles (user_id) VALUES ($1)',
-      [newUser.rows[0].id]
-    );
+      // Create new user
+      const newUser = await client.query(
+        'INSERT INTO users (name, email, password, role, auth_provider, auth_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+        [profile.displayName, profile.emails[0].value, '', 'patient', 'google', profile.id]
+      );
 
-    return done(null, newUser.rows[0]);
+      // Create user profile with profile picture
+      await client.query(
+        'INSERT INTO user_profiles (user_id, profile_picture) VALUES ($1, $2)',
+        [newUser.rows[0].id, profile.photos[0].value]
+      );
+
+      await client.query('COMMIT');
+      return done(null, newUser.rows[0]);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   } catch (error) {
     return done(error);
   }
