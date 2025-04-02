@@ -21,21 +21,9 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: function(origin, callback) {
-    const allowedOrigins = process.env.NODE_ENV === 'development'
-      ? ['http://localhost:3000', 'http://localhost:3001']
-      : ['https://test-frontend-two-woad.vercel.app'];
-    
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.error('CORS Error - Origin not allowed:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: process.env.NODE_ENV === 'production' 
+    ? 'https://test-frontend-two-woad.vercel.app'
+    : ['http://localhost:3000', 'http://localhost:3001'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With', 'Accept'],
@@ -52,7 +40,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Trust the first proxy and enable CORS
+// Trust proxy for secure cookies
 app.set('trust proxy', 1);
 app.use(cors(corsOptions));
 
