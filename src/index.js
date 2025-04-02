@@ -14,7 +14,7 @@ const adminRoutes = require('./routes/adminRoutes');
 
 // Load environment variables based on NODE_ENV
 require('dotenv').config({
-  path: path.resolve(process.cwd(), process.env.NODE_ENV === 'production' ? '.env' : '.env.development')
+  path: path.resolve(process.cwd(), process.env.NODE_ENV === 'development' ? '.env.development' : '.env')
 });
 
 const app = express();
